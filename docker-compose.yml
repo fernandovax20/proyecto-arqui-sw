@@ -1,0 +1,24 @@
+version: '3.1'
+
+services:
+  soabus:
+    image: jrgiadach/soabus:v1
+    ports:
+      - "5000:5000"
+    restart: always
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: barberhouse
+      POSTGRES_PASSWORD: soa123
+      POSTGRES_DB: barberhouse
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
+
