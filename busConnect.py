@@ -1,24 +1,6 @@
 import socket
 import sys
 import time 
-def process_data(data):
-    """
-    Procesa la entrada del cliente. La entrada esperada es "sumar num1 num2".
-    Devuelve una respuesta con la suma de num1 y num2.
-    """
-    
-    parts = data.split()
-    
-    if len(parts) != 3 or parts[0] != "sumar":
-        return "00012sumaNKError en formato"
-    
-    try:
-        num1 = int(parts[1])
-        num2 = int(parts[2])
-        result = num1 + num2
-        return "sumar"+str(result)
-    except ValueError:
-        return "00018sumaNKError en números"
     
 def GlobalServiceConnect(nombre, funcion):
     caracteres = "El nombre debe tener 5 caracteres justos"
