@@ -21,8 +21,12 @@ def process_data(data):
         return "00018sumaNKError en números"
     
 def GlobalServiceConnect(nombre, funcion):
+    caracteres = "El nombre debe tener 5 caracteres justos"
     if(len(nombre) > 5):
-        return "El nombre debe tener 5 caracteres como maximo"
+        return caracteres
+    elif(len(nombre) < 5 or len(nombre) == 0):
+        return caracteres
+    
     # Create a TCP/IP socket
     sock = socket.socket (socket.AF_INET, socket.SOCK_STREAM)
 
@@ -58,7 +62,7 @@ def GlobalServiceConnect(nombre, funcion):
             print(data.decode())
             ndata = funcion(data.decode())
 
-            resp='{:05d}'.format (len(ndata)) + ndata
+            resp='{:05d}'.format (len(ndata) + 5) + nombre + ndata
             
             print ("Send answer (if needed)")
             print ('sending {}'.format (resp))

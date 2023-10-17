@@ -1,5 +1,7 @@
 import busConnect as bc
 import json
+import sys
+import busConnect as bc
 
 def listaDeNombres(data=None):  # Modificación aquí
     nombre = ["benja", "jose", "juan", "pedro", "maria", "josefa", 
@@ -10,13 +12,19 @@ def listaDeNombres(data=None):  # Modificación aquí
     "nombres": nombre
     }
     json_string = json.dumps(data)
-    respuesta = "lista" + json_string
+    respuesta = json_string
     return respuesta
     #return "lista"+nombre_str
 
 
 
-if __name__ == "__main__":
+def main():
+    if sys.argv[1] == "sumar":
+        bc.GlobalServiceConnect("sumar", bc.process_data)
+    elif sys.argv[1] == "lista":
+        bc.GlobalServiceConnect("lista", listaDeNombres)
+    else:
+        print("Argumento no válido")
 
-    #bc.GlobalServiceConnect("sumar", bc.process_data)
-    bc.GlobalServiceConnect("lista", listaDeNombres)
+if __name__ == "__main__":
+    main()
