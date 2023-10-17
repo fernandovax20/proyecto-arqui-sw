@@ -1,5 +1,6 @@
 import socket
 import sys
+import time 
 def process_data(data):
     """
     Procesa la entrada del cliente. La entrada esperada es "sumar num1 num2".
@@ -56,7 +57,9 @@ def GlobalServiceConnect(nombre, funcion):
             print ("Processing ...")
             print(data.decode())
             ndata = funcion(data.decode())
+
             resp='{:05d}'.format (len(ndata)) + ndata
+            
             print ("Send answer (if needed)")
             print ('sending {}'.format (resp))
             sock.sendall (bytes(resp, 'utf-8'))
