@@ -1,0 +1,6 @@
+bcrypt
+jwt
+datetime
+json
+sqlalchemy
+prettytable
