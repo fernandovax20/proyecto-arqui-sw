@@ -1,13 +1,10 @@
 import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import busConnect as bc
-from services import serviceListaServicios as ls
-from services import serviceIniciarSesion as inses
-from services import serviceRegistrarUsuario as reg
-#from services import serviceSesiones as ses
-from services import serviceDB as db
+import serviceListaServicios as ls
+import serviceIniciarSesion as inses
+import serviceRegistrarUsuario as reg
+import serviceSesiones as ses
+import serviceDB as db
 
 def main():
     if sys.argv[1] == "lsbar": # este lanza la lista de los servicios de barberia
@@ -19,8 +16,8 @@ def main():
     elif sys.argv[1] == "dbcon": # Conectar a la base de datos
         bc.GlobalServiceConnect("dbcon", db.instruccion)
 
-    #elif sys.argv[1] == "svses": # Verificar sesiones
-        #bc.GlobalServiceConnect("svses", ses.instruccion)
+    elif sys.argv[1] == "svses": # Verificar sesiones
+        bc.GlobalServiceConnect("svses", ses.instruccion)
     else:
         print("Argumento no válido")
 

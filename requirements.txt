@@ -1,6 +1,5 @@
 bcrypt
-jwt
-datetime
-json
+PyJWT
 sqlalchemy
 prettytable
+psycopg2-binary

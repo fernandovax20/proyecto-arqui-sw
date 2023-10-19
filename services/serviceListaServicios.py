@@ -1,5 +1,5 @@
 import json
-from helpers import busConnect as bc
+import busConnect as bc
 
 def ListarServicios(data=None):
     response = bc.sendToBus("dbcon", {"instruccion": "getAllServicios", "data": "hola"})

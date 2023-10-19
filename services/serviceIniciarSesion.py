@@ -1,4 +1,6 @@
+import busConnect as bc
 import json
+
 
 Usuarios = {
     "usuarios": [
@@ -17,6 +19,18 @@ def IniciarSesion(data):
     usuario = json.loads(data[5:])
     email = usuario['email']
     password = usuario['password']
+    response = bc.sendToBus("dbcon", {
+        "instruccion": "getUser", 
+        "email": email, 
+        "password": password
+    })
+
+
+    if(response["status"] == "success"):
+        output = bc.sendToBus("svses", { "instruccion": "create_token", "email": email, "role": response["data"]["nombre_rol"] })
+        print("El token generado es: ", output["token"])
+
+        return json.dumps({"user":response, "token":output["token"]})
 
     for i in range(len(Usuarios["usuarios"])):
         if(Usuarios["usuarios"][i]["email"] == email):
