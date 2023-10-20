@@ -13,10 +13,7 @@ def es_nombre_valido(nombre):
     """Verifica si un dato contiene solo letras y espacios."""
     return all(caracter.isalpha() or caracter.isspace() for caracter in nombre)
 
-
-
-
-def ListarServicios(data=None):
+def ListarServicios(data=None): 
     res = bc.sendToBus("lsbar")  # Asumiendo que esto retorna el JSON mencionado
     respuesta = res["servicios"]
     
@@ -45,7 +42,6 @@ def RegistrarUsuario(nombre, email, password):
         "password": password
     }
     res = bc.sendToBus("regus", data)
-    print(res)
     return res
 
 def menuCliente(nombre, rol, token):
@@ -114,6 +110,9 @@ if __name__ == "__main__":
         elif(opcion == "2"):
             print("Iniciar Sesión")
             email = input("Ingrese email: ")
+            while not es_email_valido(email):
+                print("Email no válido. Por favor, ingrese un email correcto.")
+                email = input("Ingrese su email: ")
             password = pwinput.pwinput("Ingrese password: ")
 
             res = IniciarSesion(email, password)
