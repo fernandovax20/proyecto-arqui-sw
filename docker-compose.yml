@@ -8,7 +8,8 @@ services:
     restart: always
 
   db:
-    image: postgres
+    image: postgres:15.2
+    build: ./DB
     restart: always
     environment:
       POSTGRES_USER: barberhouse
@@ -17,8 +18,5 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
-
-volumes:
-  db_data:
-
+      - ./DB/db_data:/var/lib/postgresql/data
+      - ./DB/dataModel.sql:/docker-entrypoint-initdb.d/dataModel.sql  # Ajusta la ruta a tu archivo SQL
