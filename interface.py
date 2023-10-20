@@ -1,6 +1,20 @@
 from services import busConnect as bc
 from prettytable import PrettyTable
 import time
+import re
+import pwinput
+
+def es_email_valido(email):
+    """Verifica si un dato es un email válido."""
+    pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    return bool(re.match(pattern, email))
+
+def es_nombre_valido(nombre):
+    """Verifica si un dato contiene solo letras y espacios."""
+    return all(caracter.isalpha() or caracter.isspace() for caracter in nombre)
+
+
+
 
 def ListarServicios(data=None):
     res = bc.sendToBus("lsbar")  # Asumiendo que esto retorna el JSON mencionado
@@ -22,15 +36,17 @@ def IniciarSesion(email, password):
         "password": password
     }
     res = bc.sendToBus("inses", data)
-    usuario = res["user"]
-    print(usuario, type(usuario))
-    print(usuario['status'])
-    print(usuario['data']['nombre'], 
-          usuario['data']['email'],
-          usuario['data']['nombre_rol'],
-          res['token']
-    )
-    #print(res["status"], type(res))
+    return res
+
+def RegistrarUsuario(nombre, email, password):
+    data = {
+        "nombre": nombre,
+        "email": email,
+        "password": password
+    }
+    res = bc.sendToBus("regus", data)
+    print(res)
+    return res
 
 def menuCliente(nombre, rol, token):
     salir = False
@@ -39,6 +55,8 @@ def menuCliente(nombre, rol, token):
         Bienvenido {rol} {nombre}\n
         1. Reservar una hora\n
         2. Salir\n
+        \n
+        token: {token}
         _________________________________________________________\n
         """)
         opcion = input("Ingrese opción: ")
@@ -59,6 +77,8 @@ def menuAdmin(nombre, rol, token):
         1. Administrar Servicios\n
         2. Administrar Usuarios\n
         3. Salir\n
+        \n
+        token: {token}
         _________________________________________________________\n
         """)
         opcion = input("Ingrese opción: ")
@@ -94,12 +114,45 @@ if __name__ == "__main__":
         elif(opcion == "2"):
             print("Iniciar Sesión")
             email = input("Ingrese email: ")
-            password = input("Ingrese password: ")
+            password = pwinput.pwinput("Ingrese password: ")
 
-            IniciarSesion(email, password)
+            res = IniciarSesion(email, password)
+
+            if(res["status"] == "success"):
+                if (res["rol"] == "cliente"):
+                    menuCliente(res["nombre"], res["rol"], res["token"])
+                elif (res["rol"] == "admin"):
+                    menuAdmin(res["nombre"], res["rol"], res["token"])
+            else:
+                print("Error al iniciar sesión")
+                print(res["error"])
 
         elif(opcion == "3"):
             print("Registrarse")
+
+            # Solicitar email hasta que sea válido
+            email = input("Ingrese su email: ")
+            while not es_email_valido(email):
+                print("Email no válido. Por favor, ingrese un email correcto.")
+                email = input("Ingrese su email: ")
+                
+            # Solicitar nombre hasta que sea válido
+            nombre = input("Ingrese su nombre: ")
+            while not es_nombre_valido(nombre):
+                print("Nombre no válido. Por favor, ingrese un nombre que contenga solo letras.")
+                nombre = input("Ingrese su nombre: ")
+                
+            # Solicitar contraseña (puedes añadir más validaciones si lo deseas)
+            password = pwinput.pwinput("Ingrese su contraseña: ")
+
+            res = RegistrarUsuario(nombre, email, password)
+
+            if(res["status"] == "error"):
+                print("Error al registrar usuario")
+                print(res["data"])
+            else:
+                print(res["data"])
+
         elif(opcion == "4"):
             salir = True
             print(" Has salido del sistema ")

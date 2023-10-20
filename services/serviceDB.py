@@ -30,6 +30,8 @@ def instruccion(data=None):
         return getAllServicios()
     elif datos["instruccion"] == "getUser":
         return getUser(datos["email"], datos["password"])
+    elif datos["instruccion"] == "registrarUsuario":
+        return registrarUsuario(datos["nombre"], datos["email"], datos["password"])
     
 
 
@@ -68,7 +70,8 @@ def getUser(email, password):
                           .first())
     if usuario_db:
         usuario, rol = usuario_db  # Desempacar el resultado en las variables usuario y rol
-        
+        print(bcrypt.checkpw(password.encode('utf-8'), usuario.password.encode('utf-8')))
+        print(password.encode('utf-8'), usuario.password.encode('utf-8'))
         # Verificar la contraseña (asumiendo que la contraseña en la DB está encriptada con bcrypt)
         if bcrypt.checkpw(password.encode('utf-8'), usuario.password.encode('utf-8')):
             usuario_dict = {
@@ -84,6 +87,37 @@ def getUser(email, password):
             respuesta["data"] = "Usuario o password incorrecto"
     else:
         respuesta["status"] = "error"
-        respuesta["data"] = "Usuario no encontrado"
+        respuesta["data"] = "Usuario o password incorrecto"
+    
+    return json.dumps(respuesta)  # Convertir el diccionario respuesta a una cadena JSON
+
+def registrarUsuario(nombre, email, password):
+    # Inicializar respuesta
+    respuesta = {
+        "status": None,
+        "data": None
+    }
+    # Acceder a las tablas Users y Roles
+    Users = Base.classes.Users
+
+    # Verificar si el usuario ya existe
+    usuario_db = session.query(Users).filter(Users.email == email).first()
+    if usuario_db:
+        respuesta["status"] = "error"
+        respuesta["data"] = "El usuario ya existe"
+    else:
+        # Encriptar la contraseña con bcrypt
+        password_encriptado = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        print(password_encriptado)
+        hash_texto = password_encriptado.decode('utf-8')
+        print(hash_texto)
+        # Crear un nuevo usuario
+        nuevo_usuario = Users(nombre=nombre, email=email, password=hash_texto , id_rol=2)
+        # Agregar el usuario a la sesión
+        session.add(nuevo_usuario)
+        # Guardar los cambios
+        session.commit()
+        respuesta["status"] = "success"
+        respuesta["data"] = "Usuario registrado exitosamente"
     
     return json.dumps(respuesta)  # Convertir el diccionario respuesta a una cadena JSON

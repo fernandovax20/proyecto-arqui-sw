@@ -3,3 +3,4 @@ PyJWT
 sqlalchemy
 prettytable
 psycopg2-binary
+pwinput

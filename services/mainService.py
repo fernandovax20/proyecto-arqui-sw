@@ -13,6 +13,9 @@ def main():
     elif sys.argv[1] == "inses": # Iniciar sesion de usuario
         bc.GlobalServiceConnect("inses", inses.IniciarSesion)
 
+    elif sys.argv[1] == "regus": # Registrar usuario
+        bc.GlobalServiceConnect("regus", reg.RegistrarUsuario)
+
     elif sys.argv[1] == "dbcon": # Conectar a la base de datos
         bc.GlobalServiceConnect("dbcon", db.instruccion)
 
