@@ -3,20 +3,32 @@ import json
 
 def IniciarSesion(data):
     usuario = json.loads(data[5:])
-    email = usuario['email']
-    password = usuario['password']
+    
     response = bc.sendToBus("dbcon", {
-        "instruccion": "getUser", 
-        "email": email, 
-        "password": password
+        "instruccion": "getUser",
+        "email": usuario['email'],
+        "password": usuario['password']
     })
 
+    # En caso de éxito, generamos el token y retornamos la información.
+    if response["status"] == "success":
+        output = bc.sendToBus("svses", {
+            "instruccion": "create_token",
+            "email": usuario['email'],
+            "nombre": response["data"]["nombre"],
+            "role": response["data"]["nombre_rol"]
+        })
 
-    if(response["status"] == "success"):
-        output = bc.sendToBus("svses", { "instruccion": "create_token", "email": email, "role": response["data"]["nombre_rol"] })
-        print("El token generado es: ", output["token"])
+        return json.dumps({
+            "status": "success",
+            "nombre": response["data"]["nombre"],
+            "email": response["data"]["email"],
+            "rol": response["data"]["nombre_rol"],
+            "token": output["token"]
+        })
 
-        return json.dumps({"status": response["status"], "nombre": response["data"]["nombre"], "email": response["data"]["email"], "rol": response["data"]["nombre_rol"], "token": output["token"]})
-    elif (response["status"] == "error"):
-        return json.dumps({"status": response["status"], "error":response["data"]})
-
+    # En caso de error, retornamos el mensaje de error.
+    return json.dumps({
+        "status": "error",
+        "error": response["data"]
+    })
