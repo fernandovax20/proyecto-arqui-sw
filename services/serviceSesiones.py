@@ -6,46 +6,43 @@ import json
 # Definir una llave secreta (es importante mantener esta llave segura)
 SECRET_KEY = "thebestsoaservice2023"
 
-def create_token(email, role):
-    # Crear un token JWT
-    expiration = datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # El token expira en 1 hora
+def create_token(email, nombre, role):
+    """Crea un token JWT."""
+    expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=20)
     payload = {
         "email": email,
+        "nombre": nombre,
         "role": role,
-        "exp": expiration  # Tiempo de expiración
+        "exp": expiration
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
-    return json.dumps({"token":token})
+    return json.dumps({"token": token})
 
 def verify_token(token):
-    # Verificar un token JWT
+    """Verifica un token JWT."""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return payload  # El token es válido, retornar la información del payload
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return json.dumps({
+            "status": True,
+            "data": {
+                "role": decoded["role"],
+                "email": decoded["email"],
+                "nombre": decoded["nombre"]
+            }
+        })
     except jwt.ExpiredSignatureError:
-        return "Token has expired"
+        return json.dumps({"status": False, "data": "Token expirado"})
     except jwt.InvalidTokenError:
-        return "Invalid token"
+        return json.dumps({"status": False, "data": "Token inválido"})
 
 def instruccion(data=None):
+    """Ejecuta una instrucción basada en el contenido de 'data'."""
     datos = json.loads(data[5:])
-    if datos["instruccion"] == "create_token":
-        return create_token(datos["email"], datos["role"])
-    elif datos["instruccion"] == "verify_token":
-        return verify_token(datos["token"])
+    
+    func_map = {
+        "create_token": lambda: create_token(datos["email"], datos["nombre"], datos["role"]),
+        "verify_token": lambda: verify_token(datos["token"])
+    }
 
-"""
-# Uso:
-# Encriptar una contraseña
-
-# Crear un token
-email = "usuario@example.com"
-role = "admin"
-token = create_token(email, role)
-print(f'Token: {token}')
-
-# Verificar un token
-verification_result = verify_token(token)
-print(f'Verificación: {verification_result}')
-
-"""
+    func = func_map.get(datos["instruccion"])
+    return func() if func else json.dumps({"status": False, "data": "Instrucción no reconocida"})

@@ -11,18 +11,43 @@
 
 
 # Proyecto-Arqui-Software Barber House
+Bienvenido al proyecto Barber House. A continuación, te proporcionamos una guía paso a paso para ejecutar y poner en marcha el proyecto.
 
-## Instalar dependencias
-Como primero de los pasos se debe instalar las dependencias para que el proyecto funcione correctamente, para esto se debe ejecutar el siguiente comando:
+## Pre-requisitos
+ Asegúrate de tener instalado Docker y Python en tu máquina.
 
-```pip install -r requirements.txt```
+## 1. Ejecutar Docker compose
+Para iniciar todos los servicios utilizando Docker Compose, primero navega al directorio del proyecto donde se encuentra el archivo ``docker-compose.yml``. Luego, abre una terminal en ese directorio y ejecuta el siguiente comando:
 
-## Ejecutar el proyecto
+* Si estas en windows, ejecuta el siguiente comando en la terminal 
+  ```bash 
+      docker-compose up -d
+  ```
+* Si estas en linux, ejecuta el siguiente comando en la terminal 
+  ```bash
+    docker compose up -d
+  ```
+   *Asegúrate de que todos los servicios se inicien correctamente sin errores.*
 
-Como primer paso se deben ejecutar los servicios de la parte de lógica, para esto se debe ejecutar el siguiente comando:
+## 2. **Instalar dependencias**
 
-```python ejectServices.py```
+  En la misma terminal, antes de ejecutar cualquier parte del proyecto, es esencial instalar todas las dependencias requeridas. Para esto ejecuta:
+    
+      pip install -r requirements.txt
+    
 
-Para ejecutar la parte de interfaz gráfica, ejecutar el siguiente comando:
+## 3. **Ejecutar los servicios de lógica**
+  Con las dependencias ya instaladas, puedes iniciar los servicios de lógica del proyecto. Ejecuta:
+    
+    python ejectServices.py
+    
 
-```python interface.py```
+## 4. **Ejecutar la interfaz gráfica**
+  Con los servicios de lógica en funcionamiento, lanza la interfaz gráfica para interactuar con el proyecto. Ejecuta:
+    
+    python interface.py
+    
+
+## Uso
+
+  Una vez que todo esté en marcha, sigue las indicaciones en la interfaz gráfica para utilizar las funcionalidades del proyecto Barber House.

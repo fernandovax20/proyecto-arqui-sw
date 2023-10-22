@@ -8,9 +8,6 @@ def RegistrarUsuario(data):
     email = usuario['email']
     password = usuario['password']
 
-    print("Registrando usuario...")
-    print("Nombre: ", nombre, "Email: ", email, "Password: ", password)
-
     response = bc.sendToBus("dbcon", {
        "instruccion": "registrarUsuario", 
        "nombre": nombre,
