@@ -9,7 +9,6 @@ services:
 
   db:
     image: postgres:15.2
-    build: ./DB
     restart: always
     environment:
       POSTGRES_USER: barberhouse
