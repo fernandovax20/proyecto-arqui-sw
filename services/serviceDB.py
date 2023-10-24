@@ -5,7 +5,7 @@ import json
 import bcrypt
 
 # Conexión a la base de datos
-engine = create_engine('postgresql://barberhouse:soa123@localhost/barberhouse')
+engine = create_engine('postgresql+psycopg://barberhouse:soa123@localhost/barberhouse')
 
 # Reflejar la estructura de la base de datos existente
 metadata = MetaData()
