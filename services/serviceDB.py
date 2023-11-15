@@ -24,7 +24,8 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 def instruccion(data=None):
-    datos = json.loads(data[5:])
+    print(data, "desde dbcon", data[5:])
+    datos = json.loads(data)
 
     instruct_map = {
         "getAllServicios": getAllServicios,

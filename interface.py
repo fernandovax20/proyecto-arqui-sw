@@ -23,7 +23,7 @@ def verificar_token(token):
         return None, res_dict["data"]
 
 def ListarServicios():
-    res = bc.sendToBus("lsbar")
+    res = bc.sendToBus("servc", {"instruccion": "ListarServicios"})
     respuesta = res["servicios"]
     
     tabla = PrettyTable()

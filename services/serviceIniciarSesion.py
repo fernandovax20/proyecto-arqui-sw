@@ -2,7 +2,7 @@ import busConnect as bc
 import json
 
 def IniciarSesion(data):
-    usuario = json.loads(data[5:])
+    usuario = json.loads(data)
     
     response = bc.sendToBus("dbcon", {
         "instruccion": "getUser",

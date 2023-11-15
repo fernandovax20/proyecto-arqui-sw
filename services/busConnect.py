@@ -25,7 +25,7 @@ def GlobalServiceConnect(nombre, funcion):
             data = _receive_data(sock)
             
             print("Processing ...")
-            ndata = funcion(data)
+            ndata = funcion(data[5:])
             
             resp = '{:05d}'.format(len(ndata) + 5) + nombre + ndata
             print(f"Send answer (if needed): {resp}")

@@ -37,7 +37,7 @@ def verify_token(token):
 
 def instruccion(data=None):
     """Ejecuta una instrucción basada en el contenido de 'data'."""
-    datos = json.loads(data[5:])
+    datos = json.loads(data)
     
     func_map = {
         "create_token": lambda: create_token(datos["email"], datos["nombre"], datos["role"]),
