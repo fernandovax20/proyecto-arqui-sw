@@ -3,7 +3,7 @@ import busConnect as bc
 import json
 
 def RegistrarUsuario(data):
-    usuario = json.loads(data[5:])
+    usuario = json.loads(data)
     nombre = usuario['nombre']
     email = usuario['email']
     password = usuario['password']

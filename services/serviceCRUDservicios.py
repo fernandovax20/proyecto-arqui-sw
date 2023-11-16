@@ -20,13 +20,37 @@ def ListarServicios():
     return json.dumps(response)
 
 def crearServicio(token, nombre, description, precio, duracion, puntos_por_servicio):
-    response = bc.sendToBus("dbcon", {"instruccion": "getAllServicios"})
+
+    sesion = bc.sendToBus("svses", {"instruccion": "verify_token", "token": token})
+
+    if sesion["status"] == False:
+        return json.dumps({"status": False, "data": "Token inválido"})
+    elif sesion["data"]["role"] != "admin":
+        return json.dumps({"status": False, "data": "No tienes permisos para realizar esta acción"})
+    
+    response = bc.sendToBus("dbcon", 
+        {"instruccion": "createServicio", 
+            "nombre": nombre, 
+            "description": description, 
+            "precio": precio, 
+            "duracion": duracion, 
+            "puntos_por_servicio": puntos_por_servicio
+        }
+    )
+
     return json.dumps(response)
 
-def editarServicio(token, nombre, description, precio, duracion, puntos_por_servicio):
-    response = bc.sendToBus("dbcon", {"instruccion": "getAllServicios"})
+def editarServicio(token, id, nombre, description, precio, duracion, puntos_por_servicio):
+    response = bc.sendToBus("dbcon", {"instruccion": "updateServicio"})
     return json.dumps(response)
 
 def eliminarServicio(token, id):
-    response = bc.sendToBus("dbcon", {"instruccion": "getAllServicios"})
+    sesion = bc.sendToBus("svses", {"instruccion": "verify_token", "token": token})
+
+    if sesion["status"] == False:
+        return json.dumps({"status": False, "data": "Token inválido"})
+    elif sesion["data"]["role"] != "admin":
+        return json.dumps({"status": False, "data": "No tienes permisos para realizar esta acción"})
+    
+    response = bc.sendToBus("dbcon", {"instruccion": "deleteServicio", "id": id})
     return json.dumps(response)

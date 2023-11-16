@@ -35,7 +35,7 @@ def GlobalServiceConnect(nombre, funcion):
         print('closing socket')
         sock.close()
 
-def _receive_data(sock):
+def _receive_dataa(sock):
     """Helper function to receive data from socket."""
     amount_received = 0
     amount_expected = int(sock.recv(5))
@@ -48,6 +48,28 @@ def _receive_data(sock):
         print(f'received {chunk!r}')
 
     return ''.join(parts)
+    
+def _receive_data(sock):
+    """Helper function to receive data from socket."""
+    amount_received = 0
+    amount_expected = int(sock.recv(5).decode())
+
+    data_parts = []
+    buffer_size = 8192  # Aumentar el tamaño del búfer, por ejemplo, a 8192 bytes
+
+    while amount_received < amount_expected:
+        chunk = sock.recv(min(buffer_size, amount_expected - amount_received))
+        amount_received += len(chunk)
+        data_parts.append(chunk)
+
+    data = b''.join(data_parts)
+    try:
+        return data.decode('utf-8')
+    except UnicodeDecodeError as e:
+        print(f"Error de decodificación: {e}")
+        print(f"Datos recibidos: {data}")
+        raise
+
 
 
 def sendToBus(nombreServicio, data=None):
@@ -70,6 +92,7 @@ def sendToBus(nombreServicio, data=None):
         header = sock.recv(5).decode()
         response_length = int(header)
         response = sock.recv(response_length).decode()
+
 
         # Divide la respuesta en sus componentes
         # Nota: Las variables service_name y status se crearon pero no se usaron en tu código original
