@@ -1,7 +1,4 @@
-
 from helpers import validadores as val
-from .menuCliente import menuCliente 
-from .menuAdmin import menuAdmin 
 import pwinput
 import sys
 
@@ -24,44 +21,19 @@ def menuPrincipal():
                 vl.ListarServicios()
 
             elif opcion == "2":
-                email = input("Ingrese email: ")
-                while not val.es_email_valido(email):
-                    print("Email no válido. Por favor, ingrese un email correcto.")
-                    email = input("Ingrese su email: ")
-                
+
+                email = val.obtener_email_valido()
                 password = pwinput.pwinput("Ingrese password: ")
 
-                res = vl.IniciarSesion(email, password)
-
-                if res["status"] == "success":
-                    if res["rol"] == "cliente":
-                        print("Bienvenido cliente")
-                        menuCliente(res["nombre"], res["rol"], res["token"])
-                    elif res["rol"] == "admin":
-                        print("Bienvenido administrador")
-                        menuAdmin(res["nombre"], res["rol"], res["token"])
-                else:
-                    print("Error al iniciar sesión:", res["error"])
+                vl.IniciarSesion(email, password)
 
             elif opcion == "3":
-                email = input("Ingrese su email: ")
-                while not val.es_email_valido(email):
-                    print("Email no válido. Por favor, ingrese un email correcto.")
-                    email = input("Ingrese su email: ")
 
-                nombre = input("Ingrese su nombre: ")
-                while not val.es_nombre_valido(nombre):
-                    print("Nombre no válido. Por favor, ingrese un nombre que contenga solo letras.")
-                    nombre = input("Ingrese su nombre: ")
-
+                email = val.obtener_email_valido()
+                nombre = val.obtener_nombre_valido()
                 password = pwinput.pwinput("Ingrese su contraseña: ")
 
-                res = vl.RegistrarUsuario(nombre, email, password)
-
-                if res["status"] == "error":
-                    print("Error al registrar usuario:", res["data"])
-                else:
-                    print(res["data"])
+                vl.RegistrarUsuario(nombre, email, password)
 
             elif opcion == "4":
                 print("Has salido del sistema")

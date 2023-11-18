@@ -30,5 +30,5 @@ def IniciarSesion(data):
     # En caso de error, retornamos el mensaje de error.
     return json.dumps({
         "status": "error",
-        "error": response["data"]
+        "data": response["data"]
     })

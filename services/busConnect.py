@@ -35,7 +35,7 @@ def GlobalServiceConnect(nombre, funcion):
         print('closing socket')
         sock.close()
 
-def _receive_dataa(sock):
+def _receive_data(sock):
     """Helper function to receive data from socket."""
     amount_received = 0
     amount_expected = int(sock.recv(5))
@@ -48,57 +48,50 @@ def _receive_dataa(sock):
         print(f'received {chunk!r}')
 
     return ''.join(parts)
-    
-def _receive_data(sock):
-    """Helper function to receive data from socket."""
-    amount_received = 0
-    amount_expected = int(sock.recv(5).decode())
-
-    data_parts = []
-    buffer_size = 8192  # Aumentar el tamaño del búfer, por ejemplo, a 8192 bytes
-
-    while amount_received < amount_expected:
-        chunk = sock.recv(min(buffer_size, amount_expected - amount_received))
-        amount_received += len(chunk)
-        data_parts.append(chunk)
-
-    data = b''.join(data_parts)
-    try:
-        return data.decode('utf-8')
-    except UnicodeDecodeError as e:
-        print(f"Error de decodificación: {e}")
-        print(f"Datos recibidos: {data}")
-        raise
 
 
 
-def sendToBus(nombreServicio, data=None):
+def sendToBus(nombreServicio, data=None, timeout=10):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(timeout)  # Establecer un timeout para las operaciones del socket
+
         # Conectar al servicio
         server_address = ('localhost', 5000)
-        sock.connect(server_address)
-        
-        # Si hay data, conviértela a string y añádela al nombre del servicio
-        message = nombreServicio
-        if data:
-            data_string = json.dumps(data)
-            message += data_string
-        message = message.encode()
-        
-        # Enviar el mensaje con su longitud al principio
-        sock.sendall(f"{len(message):05d}".encode() + message)
+        try:
+            sock.connect(server_address)
 
-        # Esperar la respuesta
-        header = sock.recv(5).decode()
-        response_length = int(header)
-        response = sock.recv(response_length).decode()
+            # Si hay data, conviértela a string y añádela al nombre del servicio
+            message = nombreServicio
+            if data:
+                data_string = json.dumps(data)
+                message += data_string
+            message = message.encode()
+            
+            # Enviar el mensaje con su longitud al principio
+            sock.sendall(f"{len(message):05d}".encode() + message)
 
+            # Esperar la respuesta
+            header = sock.recv(5).decode()
+            response_length = int(header)
+            response_data = sock.recv(response_length)  # Recibir los datos una sola vez
 
-        # Divide la respuesta en sus componentes
-        # Nota: Las variables service_name y status se crearon pero no se usaron en tu código original
-        service_name = response[:5]     # sumar, lista, etc.
-        status = response[5:7]          # OK o NK
-        json_data = response[7:]
+            try:
+                response_decoded = response_data.decode('utf-8')
+            except UnicodeDecodeError as e:
+                print(f"Error de decodificación: {e}")
+                print(f"Datos recibidos: {response_data}")
+                raise
 
-        # Convierte el string JSON en un diccionario de Python y devuelve
-        return json.loads(json_data)
+            # Divide la respuesta en sus componentes y devuelve
+            service_name = response_decoded[:5]     # sumar, lista, etc.
+            status = response_decoded[5:7]          # OK o NK
+            json_data = response_decoded[7:]
+            return json.loads(json_data)
+
+        except socket.timeout:
+            print("La operación ha excedido el tiempo máximo de espera.")
+            return {"status": "error", "data": "Timeout"}
+
+        except Exception as e:
+            print(f"Ocurrió un error de conexión: {e}")
+            return {"status": "error", "data": "Connection error"}

@@ -1,2 +1,4 @@
 /DB/db_data/*
 services/__pycache__/
+views/__pycache__/
+helpers/__pycache__/
