@@ -1,5 +1,6 @@
 from views import viewLogic as vl
 from helpers import validadores as val
+import pwinput
 
 def menuAdmin(nombre, rol, token):
 
@@ -83,10 +84,42 @@ def menuAdmin(nombre, rol, token):
                 opcion = input("Ingrese opción: ")
                 if opcion == "1":
                     print("Listar Usuarios")
+                    vl.ListarUsuarios(token)
                 elif opcion == "2":
                     print("Crear Usuario")
+                    nombre = val.obtener_nombre_valido()
+                    email = val.obtener_email_valido()
+                    password = pwinput.pwinput("Ingrese su contraseña: ")
+                    role = val.validar_role_usuario()
+                    res = vl.crearUsuario(token, nombre, email, password, role)
+                    print("\n"+res["data"])
                 elif opcion == "3":
                     print("Editar Usuario")
+                    users = vl.ListarUsuarios(token)
+                    print("ingresa el id del usuario a editar")
+                    id = val.validar_id_usuario(users)
+                    usuario_a_editar = next((user for user in users if user["id"] == id), None)
+
+                    if usuario_a_editar:
+                        print(f"Nombre actual: {usuario_a_editar['nombre']}")
+                        nuevo_nombre = val.obtener_nombre_valido() if input("¿Desea cambiar el nombre? (s/n): ").lower() == 's' else usuario_a_editar['nombre']
+
+                        print(f"Email actual: {usuario_a_editar['email']}")
+                        nuevo_email = val.obtener_email_valido() if input("¿Desea cambiar el email? (s/n): ").lower() == 's' else usuario_a_editar['email']
+
+                        nueva_password = pwinput.pwinput("Ingresa la nueva contraseña o presiona Enter para mantener la actual: ")
+                        nueva_password = nueva_password if nueva_password else None  
+
+                        print(f"Rol actual: {usuario_a_editar['nombre_rol']}")
+                        nuevo_rol = val.validar_role_usuario() if input("¿Desea cambiar el rol? (s/n): ").lower() == 's' else usuario_a_editar['nombre_rol']
+
+
+                        res = vl.editarUsuario(token, id, nuevo_nombre, nuevo_email, nueva_password, nuevo_rol)
+                        
+                        print("\n"+res["data"])
+                    else:
+                        print("Usuario no encontrado.")
+
                 elif opcion == "4":
                     print("Eliminar Usuario")
                 elif opcion == "5":

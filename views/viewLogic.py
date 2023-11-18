@@ -60,10 +60,14 @@ def eliminarServicio(token, id):
         print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
 
 ##############################################################################################
-# Usuarios
+# Sesiones
 def IniciarSesion(email, password):
     try:
-        res = bc.sendToBus("inses", {"email": email, "password": password})
+        res = bc.sendToBus("svses", 
+            {"instruccion":"IniciarSesion",
+                 "email": email, 
+                 "password": password
+        })
         if res["status"] == "success":
             if res["rol"] == "cliente":
                 print("Bienvenido cliente")
@@ -79,12 +83,61 @@ def IniciarSesion(email, password):
 
 def RegistrarUsuario(nombre, email, password):
     try:
-        res = bc.sendToBus("regus", {"nombre": nombre, "email": email, "password": password})
+        res = bc.sendToBus("userc", 
+                {"instruccion":"RegistrarUsuario",
+                 "nombre": nombre, 
+                 "email": email, 
+                 "password": password
+        })
+
         if res["status"] == "error":
             print("Error al registrar usuario:", res["data"])
         else:
-            print("Error al registrar usuario",res["data"])
+            print(res["data"])
     except Exception :
         print(f"Ocurrió un error al registar el usuario, porfavor intente mas tarde")
 
+##############################################################################################
+#Usuarios
 
+def ListarUsuarios(token):
+    try:
+        res = bc.sendToBus("userc", {"instruccion": "ListarUsuarios", "token":token})
+        respuesta = res["usuarios"]
+
+        tabla = PrettyTable()
+        tabla.field_names = ["#", "Nombre", "Email", "Rol"]
+        for i, usuario in enumerate(respuesta, start=1):
+            tabla.add_row([usuario["id"], usuario['nombre'], usuario['email'], usuario['nombre_rol']])
+        print(tabla)
+        time.sleep(2)
+        return respuesta
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
+def crearUsuario(token, nombre, email, password, role):
+    try:
+        res = bc.sendToBus("userc", 
+            {"instruccion": "CrearUsuario", 
+                "token":token,
+                "nombre": nombre, 
+                "email": email, 
+                "password": password,
+                "nombre_rol": role})
+        return res
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
+def editarUsuario(token, id, nombre, email, password, role):
+    try:
+        res = bc.sendToBus("userc", 
+            {"instruccion": "EditarUsuario", 
+                "token":token,
+                "id": id,
+                "nombre": nombre, 
+                "email": email, 
+                "password": password,
+                "nombre_rol": role})
+        return res
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")

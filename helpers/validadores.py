@@ -23,6 +23,31 @@ def obtener_nombre_valido():
         else:
             print("El nombre debe contener solo letras y espacios, y tener un máximo de 50 caracteres.")
 
+def validar_role_usuario():
+    """Verifica si el rol del usuario es válido."""
+    while True:
+        role = input("Ingrese rol del usuario: ")
+        if role in ["admin", "cliente"]:
+            return role
+        else:
+            print("El rol debe ser 'admin' o 'cliente'.")
+
+def validar_id_usuario(users):
+    """Verifica si el ID del usuario es un número positivo y está en la lista de IDs válidos."""
+    while True:
+        id_usuario = input("Ingrese id del usuario: ")
+        if id_usuario.isdigit():  # Verifica si el input es un número
+            id_usuario = int(id_usuario)
+            # Verifica si el ID está en la lista de usuarios
+            if any(user["id"] == id_usuario for user in users):
+                return id_usuario
+            else:
+                print("El ID ingresado no es válido.")
+        else:
+            print("El ID debe ser un número positivo.")
+
+
+
 ####################################################################################################################
 # Validadores para servicios
 def validar_nombre_servicio():
@@ -65,5 +90,7 @@ def validar_id_servicio(ids_validos):
                 print("El ID ingresado no es válido.")
         else:
             print("El ID debe ser un número positivo.")
+
+
 
 

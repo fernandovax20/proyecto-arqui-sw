@@ -31,6 +31,10 @@ def instruccion(data=None):
         "createServicio": lambda: createServicio(datos["nombre"], datos["precio"], datos["puntos_por_servicio"]),
         "updateServicio": lambda: updateServicio(datos["id"], datos["nombre"], datos["precio"], datos["puntos_por_servicio"]),
         "deleteServicio": lambda: deleteServicio(datos["id"]),
+        "getAllUsuarios": getAllUsuarios,
+        "createUsuario": lambda: createUsuario(datos["nombre"], datos["email"], datos["password"], datos["nombre_rol"]),
+        "updateUsuario": lambda: updateUsuario(datos["id"], datos["nombre"], datos["email"], datos["password"], datos["nombre_rol"]),
+        "deleteUsuario": lambda: deleteUsuario(datos["id"]),
         "getUser": lambda: getUser(datos["email"], datos["password"]),
         "registrarUsuario": lambda: registrarUsuario(datos["nombre"], datos["email"], datos["password"])
     }
@@ -133,10 +137,10 @@ def registrarUsuario(nombre, email, password):
 def getAllUsuarios():
     usuarios = [
         {
-            "id": usuario.id,
-            "nombre": usuario.nombre,
-            "email": usuario.email,
-            "nombre_rol": usuario.nombre_rol
+            "id": usuario.Users.id,  # Cambiado de usuario.id a usuario.Users.id
+            "nombre": usuario.Users.nombre,
+            "email": usuario.Users.email,
+            "nombre_rol": usuario.Roles.nombre_rol  # Asumiendo que quieres el nombre del rol
         } for usuario in session.query(Users, Roles).join(Roles, Users.id_rol == Roles.id).all()
     ]
     return json.dumps({"usuarios": usuarios}, ensure_ascii=False, separators=(',', ':'))
