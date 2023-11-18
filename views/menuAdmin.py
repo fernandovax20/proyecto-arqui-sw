@@ -122,6 +122,11 @@ def menuAdmin(nombre, rol, token):
 
                 elif opcion == "4":
                     print("Eliminar Usuario")
+                    users = vl.ListarUsuarios(token)
+                    print("ingresa el id del usuario a eliminar")
+                    id = val.validar_id_usuario(users)
+                    res = vl.eliminarUsuario(token, id)
+                    print("\n"+res["data"])
                 elif opcion == "5":
                     print("Has salido del menú administrador")
                     break

@@ -141,3 +141,13 @@ def editarUsuario(token, id, nombre, email, password, role):
         return res
     except Exception as e:
         print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
+def eliminarUsuario(token, id):
+    try:
+        res = bc.sendToBus("userc", 
+            {"instruccion": "EliminarUsuario", 
+                "token":token,
+                "id": id})
+        return res
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
