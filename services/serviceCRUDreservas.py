@@ -7,11 +7,13 @@ def instruccion(data=None):
     
     func_map = {
         "ListarReservas": lambda: getAllReservas(datos["token"]),
-        "ListarFechasReservas": lambda: getAllFechasReservas(datos["token"]),
+        "ListarFechasReservas": lambda: getAllFechasReservas(),
+        "reservasPorUserId": lambda: reservasPorUserId(datos["token"], datos["id_usuario"]),
         "createReserva": lambda: createReserva(datos["token"], datos["id_usuario"], datos["id_servicio"], datos["fecha_hora_utc"]),
-        "updateReserva": lambda: updateReserva(),
-        "deleteReserva": lambda: deleteReserva(datos["id"]),
-        "ConfirmarAsistencia": lambda: ConfirmarAsistencia(datos["id"]),
+        "updateReserva": lambda: updateReserva(datos["token"], datos["id_reserva"], datos["id_usuario"], datos["id_servicio"], datos["fecha_hora_utc"]),
+        "deleteReserva": lambda: deleteReserva(datos["token"], datos["id_reserva"]),
+        "ConfirmarAsistencia": lambda: ConfirmarAsistencia(datos["token"], datos["id_reserva"]),
+        "reservasCliente": lambda: reservasCliente(datos["token"])
     }
 
     func = func_map.get(datos["instruccion"])
@@ -29,20 +31,67 @@ def getAllReservas(token):
     response = bc.sendToBus("dbcon", {"instruccion": "getAllReservas"})
     return json.dumps(response, separators=(',', ':'))
 
-def getAllFechasReservas(token):
+def getAllFechasReservas():
+
+    response = bc.sendToBus("dbcon", {"instruccion": "getAllFechasReservas"})
+    return json.dumps(response, separators=(',', ':'))
+
+def reservasCliente(token):
         
     sesion = bc.sendToBus("svses", {"instruccion": "verify_token", "token": token})
 
     if sesion["status"] == False:
         return json.dumps({"status": False, "data": "Token inválido"})
-    elif sesion["data"]["role"] != "admin":
+    elif sesion["data"]["role"] != "cliente":
         return json.dumps({"status": False, "data": "No tienes permisos para realizar esta acción"})
         
-    response = bc.sendToBus("dbcon", {"instruccion": "getAllFechasReservas"})
+    email = sesion["data"]["email"]
+    response = bc.sendToBus("dbcon", {"instruccion": "reservasCliente", "email": email})
     return json.dumps(response, separators=(',', ':'))
+
+def reservasPorUserId(token, id_usuario):
+            
+        sesion = bc.sendToBus("svses", {"instruccion": "verify_token", "token": token})
+    
+        if sesion["status"] == False:
+            return json.dumps({"status": False, "data": "Token inválido"})
+        elif sesion["data"]["role"] != "admin":
+            return json.dumps({"status": False, "data": "No tienes permisos para realizar esta acción"})
+            
+        response = bc.sendToBus("dbcon", {"instruccion": "reservasPorUserId", "id_usuario": id_usuario})
+        return json.dumps(response, separators=(',', ':'))
 
 def createReserva(token, id_usuario, id_servicio, fecha_hora_utc):
 
+    sesion = bc.sendToBus("svses", {"instruccion": "verify_token", "token": token})
+
+    response = ""
+
+    if sesion["status"] == False:
+        return json.dumps({"status": False, "data": "Token inválido"})
+    elif sesion["data"]["role"] == "admin":
+        response = bc.sendToBus("dbcon", {
+            "instruccion": "createReserva", 
+            "id_usuario": id_usuario, 
+            "id_servicio": id_servicio, 
+            "fecha_hora_utc": fecha_hora_utc
+        })
+    elif sesion["data"]["role"] == "cliente":
+        email = sesion["data"]["email"]
+        response = bc.sendToBus("dbcon", {
+            "instruccion": "createClienteReserva", 
+            "email_usuario": email, 
+            "id_servicio": id_servicio, 
+            "fecha_hora_utc": fecha_hora_utc
+        })
+    else:
+        return json.dumps({"status": False, "data": "No tienes permisos para realizar esta acción"})
+
+    
+    return json.dumps(response, separators=(',', ':'))
+
+def updateReserva(token, id_reserva, id_usuario, id_servicio, fecha_hora_utc):
+    
     sesion = bc.sendToBus("svses", {"instruccion": "verify_token", "token": token})
 
     if sesion["status"] == False:
@@ -51,18 +100,43 @@ def createReserva(token, id_usuario, id_servicio, fecha_hora_utc):
         return json.dumps({"status": False, "data": "No tienes permisos para realizar esta acción"})
 
     response = bc.sendToBus("dbcon", {
-        "instruccion": "createReserva", 
+        "instruccion": "updateReserva", 
+        "id_reserva": id_reserva, 
         "id_usuario": id_usuario, 
         "id_servicio": id_servicio, 
         "fecha_hora_utc": fecha_hora_utc
     })
     return json.dumps(response, separators=(',', ':'))
 
-def updateReserva(id, nombre, email, telefono, fecha, hora, cantidad_personas, estado):
-    print("Entra a updateReserva")
+def deleteReserva(token, id):
+        
+    sesion = bc.sendToBus("svses", {"instruccion": "verify_token", "token": token})
 
-def deleteReserva(id):
-    print("Entra a deleteReserva")
+    if sesion["status"] == False:
+        return json.dumps({"status": False, "data": "Token inválido"})
+    elif sesion["data"]["role"] != "admin":
+        return json.dumps({"status": False, "data": "No tienes permisos para realizar esta acción"})
 
-def ConfirmarAsistencia(id):
-    print("Entra a ConfirmarAsistencia")
+    response = bc.sendToBus("dbcon", {
+        "instruccion": "deleteReserva", 
+        "id_reserva": id
+    })
+    return json.dumps(response, separators=(',', ':'))
+
+def ConfirmarAsistencia(token, id):
+            
+    sesion = bc.sendToBus("svses", {"instruccion": "verify_token", "token": token})
+
+    if sesion["status"] == False:
+        return json.dumps({"status": False, "data": "Token inválido"})
+    elif sesion["data"]["role"] != "admin":
+        return json.dumps({"status": False, "data": "No tienes permisos para realizar esta acción"})
+
+    response = bc.sendToBus("dbcon", {
+        "instruccion": "ConfirmarAsistencia", 
+        "id_reserva": id
+    })
+    return json.dumps(response, separators=(',', ':'))
+
+def reservaCliente(token):
+    print("reservaCliente")

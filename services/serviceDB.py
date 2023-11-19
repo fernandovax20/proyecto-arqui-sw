@@ -20,6 +20,7 @@ Servicio = Base.classes.Servicios
 Users = Base.classes.Users
 Roles = Base.classes.Roles
 Reserva = Base.classes.Reserva
+Puntos_Acumulados = Base.classes.Puntos_Acumulados
 
 # Crear una sesión
 Session = sessionmaker(bind=engine)
@@ -41,7 +42,14 @@ def instruccion(data=None):
         "registrarUsuario": lambda: registrarUsuario(datos["nombre"], datos["email"], datos["password"]),
         "getAllReservas": getAllReservas,
         "getAllFechasReservas": getAllFechasReservas,
+        "reservasPorUserId": lambda: reservas_by_user_id(datos["id_usuario"]),
         "createReserva": lambda: createReserva(datos["id_usuario"], datos["id_servicio"], datos["fecha_hora_utc"]),
+        "createClienteReserva": lambda: createClienteReserva(datos["email_usuario"], datos["id_servicio"], datos["fecha_hora_utc"]),
+        "updateReserva": lambda: updateReserva(datos["id_reserva"], datos["id_usuario"], datos["id_servicio"], datos["fecha_hora_utc"]),
+        "deleteReserva": lambda: deleteReserva(datos["id_reserva"]),
+        "ConfirmarAsistencia": lambda: ConfirmarAsistencia(datos["id_reserva"]),
+        "reservasCliente": lambda: MisReservas(datos["email"]),
+        "getPuntos": lambda: getPuntosByEmail(datos["email"])
     }
     
     func = instruct_map.get(datos["instruccion"])
@@ -87,7 +95,6 @@ def updateServicio(id, nombre, precio, puntos_por_servicio):
         # En caso de error, deshace los cambios
         session.rollback()
         return json.dumps({"status": "error", "data": str(e)}, separators=(',', ':'))
-
 
 def deleteServicio(id):
     try:
@@ -195,6 +202,8 @@ def deleteUsuario(id):
         session.rollback()
         return json.dumps({"status": "error", "data": str(e)}, separators=(',', ':'))
 
+###########################################################################################################
+# Funciones Reservas
 def getAllReservas():
     reservas = session.query(
         Reserva.id,
@@ -243,10 +252,169 @@ def getAllFechasReservas():
 
     return json.dumps({"reservas": resultado}, ensure_ascii=False, separators=(',', ':'))
 
+def reservas_by_user_id(user_id):
+    reservas = session.query(
+        Reserva.id,
+        Users.nombre.label('nombre_usuario'),
+        Servicio.nombre.label('nombre_servicio'),
+        func.to_char(func.timezone('Chile/Continental', Reserva.fecha_hora), 'YYYY-MM-DD HH24:MI').label('hora_local'),
+        Reserva.estado,
+        Reserva.confirmacion,
+        Reserva.confirmacion_presencial
+    ).join(
+        Servicio, Reserva.id_servicio == Servicio.id
+    ).join(
+        Users, Reserva.id_usuario == Users.id
+    ).filter(
+        Reserva.id_usuario == user_id
+    ).all()
+
+    resultado = [
+        {
+            "id": reserva.id,
+            "nombre_usuario": reserva.nombre_usuario,
+            "nombre_servicio": reserva.nombre_servicio,
+            "hora_local": reserva.hora_local,
+            "estado": reserva.estado
+        } for reserva in reservas
+    ]
+
+    return json.dumps({"reservas": resultado}, ensure_ascii=False, separators=(',', ':'))
+
 def createReserva(id_usuario, id_servicio, fecha_hora_utc):
     nueva_reserva = Reserva(id_usuario=id_usuario, id_servicio=id_servicio, fecha_hora=fecha_hora_utc)
     session.add(nueva_reserva)
     session.commit()
     return json.dumps({"status": "success", "data": "Reserva creada exitosamente"}, separators=(',', ':'))
 
+def createClienteReserva(email_usuario, id_servicio, fecha_hora_utc):
+    usuario = session.query(Users).filter(Users.email == email_usuario).one_or_none()
 
+    if usuario is None:
+        return json.dumps({"status": "error", "data": "Usuario no encontrado"}, separators=(',', ':'))
+    
+    nueva_reserva = Reserva(id_usuario=usuario.id, id_servicio=id_servicio, fecha_hora=fecha_hora_utc)
+    session.add(nueva_reserva)
+    session.commit()
+    return json.dumps({"status": "success", "data": "Reserva creada exitosamente"}, separators=(',', ':'))
+
+def updateReserva(id, id_usuario, id_servicio, fecha_hora_utc):
+    try:
+        reserva = session.query(Reserva).filter(Reserva.id == id).with_for_update().one_or_none()
+
+        if reserva is None:
+            return json.dumps({"status": "error", "data": "Reserva no encontrada"}, separators=(',', ':'))
+
+        # Actualizar campos de la reserva existente
+        reserva.id_usuario = id_usuario
+        reserva.id_servicio = id_servicio
+        reserva.fecha_hora = fecha_hora_utc
+
+        session.commit()
+        return json.dumps({"status": "success", "data": "Reserva actualizada exitosamente"}, separators=(',', ':'))
+    except Exception as e:
+        session.rollback()
+        return json.dumps({"status": "error", "data": str(e)}, separators=(',', ':'))
+
+def deleteReserva(id):
+    try:
+        reserva = session.query(Reserva).filter(Reserva.id == id).one_or_none()
+
+        if reserva is None:
+            return json.dumps({"status": "error", "data": "Reserva no encontrada"}, separators=(',', ':'))
+
+        session.delete(reserva)
+        session.commit()
+        return json.dumps({"status": "success", "data": "Reserva eliminada exitosamente"}, separators=(',', ':'))
+    except Exception as e:
+        session.rollback()
+        return json.dumps({"status": "error", "data": str(e)}, separators=(',', ':'))
+
+def ConfirmarAsistencia(id_reserva):
+    try:
+        # Obtener la reserva y los puntos del servicio asociado
+        reserva = session.query(Reserva, Servicio.puntos_por_servicio).join(
+            Servicio, Reserva.id_servicio == Servicio.id
+        ).filter(
+            Reserva.id == id_reserva
+        ).with_for_update().one_or_none()
+
+        if reserva is None:
+            return json.dumps({"status": "error", "data": "Reserva no encontrada"}, separators=(',', ':'))
+
+        puntos_servicio = reserva.puntos_por_servicio
+
+        # Actualizar la confirmación presencial de la reserva
+        reserva.Reserva.confirmacion_presencial = True
+        reserva.Reserva.estado = "atendido"  # Cambiar el estado de la reserva a 'asistio'
+
+        # Buscar los puntos acumulados del usuario
+        puntos_acumulados = session.query(Puntos_Acumulados).filter(
+            Puntos_Acumulados.id_usuario == reserva.Reserva.id_usuario
+        ).with_for_update().one_or_none()
+
+        # Sumar los puntos del servicio a los puntos acumulados del usuario
+        if puntos_acumulados:
+            puntos_acumulados.puntos_acumulados += puntos_servicio
+        else:
+            # Crear un nuevo registro si no existe
+            puntos_acumulados = Puntos_Acumulados(
+                id_usuario=reserva.Reserva.id_usuario, 
+                puntos_acumulados=puntos_servicio
+            )
+            session.add(puntos_acumulados)
+
+        session.commit()
+        return json.dumps({"status": "success", "data": "Reserva confirmada y puntos actualizados exitosamente"}, separators=(',', ':'))
+    except Exception as e:
+        session.rollback()
+        return json.dumps({"status": "error", "data": str(e)}, separators=(',', ':'))
+
+
+def MisReservas(email):
+    usuario = session.query(Users).filter(Users.email == email).one_or_none()
+
+    if usuario is None:
+        return json.dumps({"status": "error", "data": "Usuario no encontrado"}, separators=(',', ':'))
+
+    reservas = session.query(
+        Reserva.id,
+        Users.nombre.label('nombre_usuario'),
+        Servicio.nombre.label('nombre_servicio'),
+        func.to_char(func.timezone('Chile/Continental', Reserva.fecha_hora), 'YYYY-MM-DD HH24:MI').label('hora_local'),
+        Reserva.estado,
+        Reserva.confirmacion,
+        Reserva.confirmacion_presencial
+    ).join(
+        Servicio, Reserva.id_servicio == Servicio.id
+    ).join(
+        Users, Reserva.id_usuario == Users.id
+    ).filter(
+        Reserva.id_usuario == usuario.id
+    ).all()
+
+    resultado = [
+        {
+            "id": reserva.id,
+            "nombre_usuario": reserva.nombre_usuario,
+            "nombre_servicio": reserva.nombre_servicio,
+            "hora_local": reserva.hora_local,
+            "estado": reserva.estado
+        } for reserva in reservas
+    ]
+
+    return json.dumps({"reservas": resultado}, ensure_ascii=False, separators=(',', ':'))
+
+def getPuntosByEmail(email):
+    usuario = session.query(Users).filter(Users.email == email).one_or_none()
+
+    if usuario is None:
+        return json.dumps({"status": "error", "data": "Usuario no encontrado"}, separators=(',', ':'))
+
+    puntos_acumulados = session.query(Puntos_Acumulados).filter(
+        Puntos_Acumulados.id_usuario == usuario.id
+    ).one_or_none()
+
+    puntos = puntos_acumulados.puntos_acumulados if puntos_acumulados else 0
+
+    return json.dumps({"status": "success", "data": {"puntos": puntos}}, ensure_ascii=False, separators=(',', ':'))

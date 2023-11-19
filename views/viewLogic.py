@@ -191,6 +191,49 @@ def ListarFechasReservas(token):
     except Exception as e:
         print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
 
+def reservasPorUserId(token, id_usuario, retorno = True):
+    try:
+        res = bc.sendToBus("resec", {"instruccion": "reservasPorUserId", "token":token, "id_usuario": id_usuario})
+        respuesta = res["reservas"]
+        #print(respuesta)
+
+        tabla = PrettyTable()
+
+        tabla.field_names = ["ID", "Nombre_usuario", "Servicio", "Fecha_Hora", "Estado"]
+
+        for reserva in respuesta:
+            tabla.add_row([
+                reserva["id"],
+                reserva["nombre_usuario"],
+                reserva["nombre_servicio"],
+                reserva["hora_local"],
+                reserva["estado"]
+            ])
+        if tabla.rowcount == 0:
+            print("No hay reservas para este usuario")
+        else:
+            print(tabla)
+        time.sleep(2)
+
+        if retorno:
+            id_reserva = 0
+
+            while True:
+                id_reserva = input("Ingrese el id de la reserva que desea editar: ")
+
+                if id_reserva.isdigit():
+                    id_reserva = int(id_reserva)  # Convertir a entero
+                    if id_reserva in [reserva["id"] for reserva in respuesta]:
+                        break
+                    else:
+                        print("Id no válido.")
+                else:
+                    print("Por favor, ingrese un número válido para el ID.")
+
+            return id_reserva
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
 def crearReserva(token, id_usuario, id_servicio, fecha_hora_utc):
     try:
         res = bc.sendToBus("resec", 
@@ -203,16 +246,124 @@ def crearReserva(token, id_usuario, id_servicio, fecha_hora_utc):
     except Exception as e:
         print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
 
+def updateReserva(token, id_reserva, id_usuario, id_servicio, fecha_hora_utc):
+    try:
+        res = bc.sendToBus("resec", 
+            {"instruccion": "updateReserva", 
+                "token":token,
+                "id_reserva": id_reserva, 
+                "id_usuario": id_usuario, 
+                "id_servicio": id_servicio, 
+                "fecha_hora_utc": fecha_hora_utc
+            })
+        return res
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
 
+def deleteReserva(token, id_reserva):
+    try:
+        res = bc.sendToBus("resec", 
+            {"instruccion": "deleteReserva", 
+                "token":token,
+                "id_reserva": id_reserva
+            })
+        return res
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
 
-
-
+def ConfirmarAsistencia(token, id_reserva):
+    try:
+        res = bc.sendToBus("resec", 
+            {"instruccion": "ConfirmarAsistencia", 
+                "token":token,
+                "id_reserva": id_reserva
+            })
+        return res
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
 
 
 ##############################################################################################
+#Puntos y resrvas de Clientes
+
+def ReservarHora(token, id_servicio, fecha_hora_utc):
+    try:
+        res = bc.sendToBus("resec", 
+            {"instruccion": "createReserva", 
+                "token":token,
+                "id_usuario": 0,
+                "id_servicio": id_servicio, 
+                "fecha_hora_utc": fecha_hora_utc})
+        return res
+
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
+def MisReservas(token):
+    try:
+        res = bc.sendToBus("resec", 
+            {"instruccion": "reservasCliente", 
+                "token":token
+            })
+        respuesta = res["reservas"]
+
+        tabla = PrettyTable()
+
+        tabla.field_names = ["ID", "Nombre_usuario", "Servicio", "Fecha_Hora", "Estado"]
+
+        for reserva in respuesta:
+            tabla.add_row([
+                reserva["id"],
+                reserva["nombre_usuario"],
+                reserva["nombre_servicio"],
+                reserva["hora_local"],
+                reserva["estado"]
+            ])
+        if tabla.rowcount == 0:
+            print("No hay reservas para este usuario")
+        else:
+            print(tabla)
+        time.sleep(2)
+
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
+def MisPuntos(token):
+    try:
+        # Asumiendo que 'bc.sendToBus' devuelve una respuesta con los puntos del usuario
+        res = bc.sendToBus("userc", 
+            {"instruccion": "puntosCliente", 
+                "token": token
+            })
+
+        # Verificar si la respuesta contiene el estado de éxito y extraer los puntos
+        if res.get("status") == "success":
+            puntos = res.get("data", {}).get("puntos", 0)
+        else:
+            print(f"Error: {res.get('data')}")
+            return
+
+        tabla = PrettyTable()
+        tabla.field_names = ["Puntos"]
+
+        # Agregar los puntos a la tabla
+        tabla.add_row([puntos])
+
+        # Imprimir la tabla
+        if tabla.rowcount == 0:
+            print("No hay puntos para este usuario")
+        else:
+            print(tabla)
+        time.sleep(2)
+
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
+##############################################################################################
 #Calendarios
-def mostrar_calendario(token):
-    reservas = bc.sendToBus("resec", {"instruccion": "ListarFechasReservas", "token":token})
+def mostrar_calendario():
+    
+    reservas = bc.sendToBus("resec", {"instruccion": "ListarFechasReservas"})
     reserved_hours = reservas["reservas"]
 
     timezone = 'Chile/Continental'
