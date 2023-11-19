@@ -1,7 +1,5 @@
 import re
 
-import re
-
 ####################################################################################################################
 # Validadores para usuarios
 def obtener_email_valido():
@@ -45,7 +43,6 @@ def validar_id_usuario(users):
                 print("El ID ingresado no es válido.")
         else:
             print("El ID debe ser un número positivo.")
-
 
 
 ####################################################################################################################

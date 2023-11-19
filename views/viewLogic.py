@@ -3,6 +3,9 @@ from prettytable import PrettyTable
 import time
 from .menuCliente import menuCliente 
 from .menuAdmin import menuAdmin 
+import pytz
+from datetime import datetime, timedelta
+from prettytable import PrettyTable
 
 ##############################################################################################
 # Servicios
@@ -151,3 +154,158 @@ def eliminarUsuario(token, id):
         return res
     except Exception as e:
         print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
+##############################################################################################
+#Reservas
+
+def ListarReservas(token):
+    try:
+        res = bc.sendToBus("resec", {"instruccion": "ListarReservas", "token":token})
+        respuesta = res["reservas"]
+
+        tabla = PrettyTable()
+        # Ajustando los nombres de las columnas según los datos
+        tabla.field_names = ["ID", "Fecha y Hora", "Cliente", "Servicio", "Estado"]
+
+        for reserva in respuesta:
+            # Asegurándote de que los datos coincidan con los nombres de las columnas
+            tabla.add_row([
+                reserva["id"],
+                reserva["hora_local"],
+                reserva["nombre_usuario"],
+                reserva["nombre_servicio"],
+                reserva["estado"]
+            ])
+        print(tabla)
+        time.sleep(2)
+        return respuesta
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
+
+def ListarFechasReservas(token):
+    try:
+        res = bc.sendToBus("resec", {"instruccion": "ListarFechasReservas", "token":token})
+        respuesta = res["reservas"]
+        return respuesta
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
+def crearReserva(token, id_usuario, id_servicio, fecha_hora_utc):
+    try:
+        res = bc.sendToBus("resec", 
+            {"instruccion": "createReserva", 
+                "token":token,
+                "id_usuario": id_usuario, 
+                "id_servicio": id_servicio, 
+                "fecha_hora_utc": fecha_hora_utc})
+        return res
+    except Exception as e:
+        print(f"Ocurrió un error: {e}, porfavor intente mas tarde")
+
+
+
+
+
+
+
+##############################################################################################
+#Calendarios
+def mostrar_calendario(token):
+    reservas = bc.sendToBus("resec", {"instruccion": "ListarFechasReservas", "token":token})
+    reserved_hours = reservas["reservas"]
+
+    timezone = 'Chile/Continental'
+    start_hour_morning = 10
+    end_hour_morning = 12
+    start_hour_afternoon = 15
+    end_hour_evening = 19
+
+    # Reservas existentes
+    
+
+    two_week_days, two_week_schedule = generate_schedule_from_today(timezone, start_hour_morning, end_hour_morning, start_hour_afternoon, end_hour_evening, reserved_hours)
+    calendar_display = create_calendar_table(two_week_days)
+    print(calendar_display)
+
+    selected_day = ""
+
+    while True:
+        selected_day = input("Ingrese la fecha que desea reservar (MM-DD): ")
+
+        if selected_day in two_week_schedule:
+            print(f"Horarios disponibles para el día {selected_day}:")
+            horas = ""
+            for hour in two_week_schedule[selected_day]:
+                horas += hour + ", "
+            print("\n")
+            print(horas[:-2])
+            print("\n")
+            break;
+        else:
+            print("Fecha no disponible o fuera de rango.")
+
+    selected_hour = ""
+    while True:
+        selected_hour = input("Ingrese la hora que desea reservar (HH:MM): ")
+
+        if selected_hour in two_week_schedule[selected_day]:
+            break;
+        else:
+            print("Hora no disponible o fuera de rango.")
+
+    print(f"Fecha y hora seleccionada: {selected_day} {selected_hour}")
+    fecha_hora_utc = convertir_a_utc(selected_day, selected_hour, timezone)
+    #print(f"Fecha y hora seleccionada en UTC: {fecha_hora_utc}")
+    return fecha_hora_utc
+
+def generate_schedule_from_today(timezone, start_hour_morning, end_hour_morning, start_hour_afternoon, end_hour_evening, reserved_hours):
+    tz = pytz.timezone(timezone)
+    now = datetime.now(tz)
+
+    # Inicia la programación desde el día actual, incluso si es domingo
+    start_date = now if now.hour < end_hour_evening else now + timedelta(days=1)
+
+    end_date = start_date + timedelta(days=14)  # Programación para dos semanas
+
+    days = []
+    schedule = {}
+    while start_date < end_date:
+        formatted_day = start_date.strftime("%m-%d")  # Formato mes-día
+        day_hours = [f"{hour}:00" for hour in range(start_hour_morning, end_hour_morning + 1)] + \
+                    [f"{hour}:00" for hour in range(start_hour_afternoon, end_hour_evening + 1)]
+        # Filtrar horas reservadas
+        day_hours = [hour for hour in day_hours if hour not in reserved_hours.get(formatted_day, [])]
+        days.append((formatted_day, start_date.weekday(), len(day_hours)))
+        schedule[formatted_day] = day_hours
+
+        start_date += timedelta(days=1)
+
+    return days, schedule
+
+
+def create_calendar_table(days):
+    calendar_table = PrettyTable()
+    # Agregar columna para el domingo
+    calendar_table.field_names = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
+    week = [''] * 7  # Ajustar para siete días
+    for day, weekday, available_hours in days:
+        week[weekday] = f"{day} ({available_hours}h)"
+        if weekday == 6:  # Ahora el índice 6 representa el domingo
+            calendar_table.add_row(week)
+            week = [''] * 7
+
+    # Si quedan días sin agregar al final de la lista
+    if week != [''] * 7:
+        calendar_table.add_row(week)
+
+    return calendar_table
+
+def convertir_a_utc(fecha_local, hora_local, timezone):
+    tz = pytz.timezone(timezone)
+    año_actual = datetime.now().year
+    fecha_hora_local = datetime.strptime(f"{año_actual}-{fecha_local} {hora_local}", "%Y-%m-%d %H:%M")
+    fecha_hora_local = tz.localize(fecha_hora_local)
+    fecha_hora_utc = fecha_hora_local.astimezone(pytz.utc)
+    return fecha_hora_utc.strftime("%Y-%m-%d %H:%M:%S UTC")

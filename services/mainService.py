@@ -4,6 +4,7 @@ import serviceSesiones as ses
 import serviceDB as db
 import serviceCRUDservicios as servcrud
 import serviceCRUDusuarios as usercrud
+import serviceCRUDreservas as reservascrud
 
 def main():
 
@@ -12,6 +13,9 @@ def main():
 
     elif sys.argv[1] == "userc": #CRUD Usuarios
         bc.GlobalServiceConnect("userc", usercrud.instruccion)
+
+    elif sys.argv[1] == "resec": # CRUD Reservas
+        bc.GlobalServiceConnect("resec", reservascrud.instruccion)
 
     elif sys.argv[1] == "dbcon": # Conectar a la base de datos
         bc.GlobalServiceConnect("dbcon", db.instruccion)

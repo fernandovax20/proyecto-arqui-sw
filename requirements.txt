@@ -4,3 +4,4 @@ sqlalchemy
 prettytable
 psycopg[binary]
 pwinput
+pytz

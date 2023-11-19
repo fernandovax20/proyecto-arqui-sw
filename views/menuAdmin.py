@@ -135,6 +135,73 @@ def menuAdmin(nombre, rol, token):
 
         elif opcion == "3":
             print("Administrar Reservas")
+
+            while True:
+                print(f"""
+                        Que desea hacer {rol} {nombre} ?
+                        1. Listar Reservas
+                        2. Crear Reserva
+                        3. Editar Reserva
+                        4. Eliminar Reserva
+                        5. Confirmar asistencia
+                        6. Salir
+                        \n
+                        token: {token}
+                        _________________________________________________________
+                """)
+
+                opcion = input("Ingrese opción: ")
+                if opcion == "1":
+                    print("Listar Reservas")
+                    vl.ListarReservas(token)
+                elif opcion == "2":
+                    print("Crear Reserva")
+                    users = vl.ListarUsuarios(token)
+                    print("ingresa el id del usuario para el cual se creará la reserva")
+                    id_usuario = val.validar_id_usuario(users)
+
+                    print("Lista de Servicios")
+                    arr_ids = vl.ListarServicios()
+                    print("ingresa el id del servicio a reservar")
+                    id_servicio = val.validar_id_servicio(arr_ids)
+                    print("ingresa la fecha de la reserva")
+                    fecha_hora_utc=vl.mostrar_calendario(token)
+                    res = vl.crearReserva(token, id_usuario, id_servicio, fecha_hora_utc)
+                    print("\n"+res["data"])
+
+
+                elif opcion == "3":
+                    print("Editar Reserva")
+                    vl.ListarReservas(token)
+                    id_reserva = val.validar_id_reserva()
+                    vl.ListarClientes(token)
+                    id_cliente = val.validar_id_cliente()
+                    vl.ListarServicios()
+                    id_servicio = val.validar_id_servicio()
+                    fecha = val.validar_fecha()
+                    res = vl.editarReserva(token, id_reserva, id_cliente, id_servicio, fecha)
+                    print("\n"+res["data"])
+
+                elif opcion == "4":
+                    print("Eliminar Reserva")
+                    vl.ListarReservas(token)
+                    id_reserva = val.validar_id_reserva()
+                    res = vl.eliminarReserva(token, id_reserva)
+                    print("\n"+res["data"])
+                
+                elif opcion == "5":
+                    print("Confirmar asistencia")
+                    vl.ListarReservas(token)
+                    id_reserva = val.validar_id_reserva()
+                    res = vl.confirmarAsistencia(token, id_reserva)
+                    print("\n"+res["data"])
+
+                elif opcion == "6":
+                    print("Has salido del menú administrador")
+                    break
+                else:
+                    print("Opción no válida")
+
         elif opcion == "4":
             print("Has salido del menú administrador")
             return
