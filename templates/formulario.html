@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formulario de Feedback</title>
+    <!-- Incluir Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+        form {
+            padding: 20px;
+            background-color: #f7f7f7;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Formulario de Feedback</h2>
+        <form action="/formulario" method="post" class="mt-4">
+            <div class="form-group">
+                <label for="id_reserva">Id Reserva: {{ id_reserva }}</label>
+                <input type="hidden" id="id_reserva" name="id_reserva" value="{{ id_reserva }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="valoracion">Valoración (1-7):</label>
+                <select name="valoracion" id="valoracion" class="form-control">
+                    <option value="1">1 - Muy malo</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7 - Excelente servicio</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="comment">Comentarios:</label>
+                <textarea id="comment" name="comment" rows="4" class="form-control"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Enviar</button>
+        </form>
+    </div>
+
+    <!-- Opcional: Incluir jQuery y Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

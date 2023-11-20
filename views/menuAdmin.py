@@ -112,7 +112,7 @@ def menuAdmin(nombre, rol, token):
 
                         print(f"Rol actual: {usuario_a_editar['nombre_rol']}")
                         nuevo_rol = val.validar_role_usuario() if input("¿Desea cambiar el rol? (s/n): ").lower() == 's' else usuario_a_editar['nombre_rol']
-
+                        
 
                         res = vl.editarUsuario(token, id, nuevo_nombre, nuevo_email, nueva_password, nuevo_rol)
                         

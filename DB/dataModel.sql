@@ -26,7 +26,8 @@ CREATE TABLE "Reserva" (
   "id_servicio" integer NOT NULL,
   "fecha_hora" timestamptz NOT NULL DEFAULT (now()),
   "estado" varchar NOT NULL DEFAULT 'pendiente',
-  "confirmacion" boolean DEFAULT false,
+  "correo_enviado" boolean DEFAULT false,
+  "feedback_enviado" boolean DEFAULT false,
   "confirmacion_presencial" boolean DEFAULT false
 );
 
@@ -59,7 +60,8 @@ insert into "Roles" ("nombre_rol")
 
 insert into "Users" ("nombre","email","password","id_rol") values 
   ('admin','adm@adm.cl','$2b$10$6CaxPcda7RtARiUtlo1xq.0KU3rdjkeLid2tNiDFWyGPP1WTHQMpO',1),
-  ('client','c@c.cl','$2b$10$6CaxPcda7RtARiUtlo1xq.0KU3rdjkeLid2tNiDFWyGPP1WTHQMpO',2);
+  ('client','c@c.cl','$2b$10$6CaxPcda7RtARiUtlo1xq.0KU3rdjkeLid2tNiDFWyGPP1WTHQMpO',2),
+  ('Fernando','fernando.vax20@gmail.com','$2b$10$6CaxPcda7RtARiUtlo1xq.0KU3rdjkeLid2tNiDFWyGPP1WTHQMpO',2);
 
 insert into "Servicios" ("nombre","precio","puntos_por_servicio") 
   values 
