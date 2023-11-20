@@ -5,3 +5,5 @@ prettytable
 psycopg[binary]
 pwinput
 pytz
+flask
+schedule
