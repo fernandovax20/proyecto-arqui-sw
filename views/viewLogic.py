@@ -413,19 +413,26 @@ def mostrar_calendario():
 def generate_schedule_from_today(timezone, start_hour_morning, end_hour_morning, start_hour_afternoon, end_hour_evening, reserved_hours):
     tz = pytz.timezone(timezone)
     now = datetime.now(tz)
-
-    # Inicia la programación desde el día actual, incluso si es domingo
     start_date = now if now.hour < end_hour_evening else now + timedelta(days=1)
-
-    end_date = start_date + timedelta(days=14)  # Programación para dos semanas
+    end_date = start_date + timedelta(days=14)
 
     days = []
     schedule = {}
     while start_date < end_date:
-        formatted_day = start_date.strftime("%m-%d")  # Formato mes-día
-        day_hours = [f"{hour}:00" for hour in range(start_hour_morning, end_hour_morning + 1)] + \
-                    [f"{hour}:00" for hour in range(start_hour_afternoon, end_hour_evening + 1)]
-        # Filtrar horas reservadas
+        formatted_day = start_date.strftime("%m-%d")
+        current_hour = now.hour if start_date.date() == now.date() else start_hour_morning
+        day_hours = []
+
+        # Ajustar horario de inicio para el día actual
+        if start_date.date() == now.date():
+            if current_hour < end_hour_morning:
+                day_hours.extend([f"{hour}:00" for hour in range(max(current_hour, start_hour_morning), end_hour_morning + 1)])
+            if current_hour < end_hour_evening:
+                day_hours.extend([f"{hour}:00" for hour in range(max(current_hour, start_hour_afternoon), end_hour_evening + 1)])
+        else:
+            day_hours = [f"{hour}:00" for hour in range(start_hour_morning, end_hour_morning + 1)] + \
+                        [f"{hour}:00" for hour in range(start_hour_afternoon, end_hour_evening + 1)]
+
         day_hours = [hour for hour in day_hours if hour not in reserved_hours.get(formatted_day, [])]
         days.append((formatted_day, start_date.weekday(), len(day_hours)))
         schedule[formatted_day] = day_hours
